@@ -23,6 +23,9 @@ int main(void) {
     if (err == -2) {
         printf("Empty file\n");
     }
+    if (err == -3) {
+        printf("Not enough elements\n");
+    }
     if (err == 1) {
         printf("result=%lld\n", res);
     }
@@ -59,8 +62,10 @@ int task(FILE *in, long long *res) {
 
         if (!feof(in)) {
             err = -1;
-        } else if (count < 2) {
+        } else if (count == 0) {
             err = -2;
+        } else if (count < 2) {
+            err = -3;
         } else {
             *res = max_diff;
             err = 1;
