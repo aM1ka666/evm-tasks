@@ -32,8 +32,7 @@ int main(void) {
 
 int task(FILE *in, long long *res) {
     long long cur;
-    long long total = 0;
-    int state = 0;
+    int state = -1;
 
     *res = 0;
 
@@ -42,11 +41,11 @@ int task(FILE *in, long long *res) {
     }
 
     while (fscanf(in, "%lld", &cur) == 1) {
-        total++;
-
-        if (state == 0) {
+        if (state <= 0) {
             if (cur == 1) {
                 state = 1;
+            } else {
+                state = 0;
             }
         } else if (state == 1) {
             if (cur == 2) {
@@ -85,7 +84,7 @@ int task(FILE *in, long long *res) {
     if (!feof(in)) {
         return -1;
     }
-    if (total == 0) {
+    if (state == -1) {
         return -2;
     }
 
