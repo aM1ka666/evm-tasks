@@ -20,7 +20,7 @@ int main(void) {
         return -1;
     }
 
-    err = read_array_2(in, &a, &n);
+    err = read_array_1(in, &a, &n);
     fclose(in);
 
     if (err == -1) {
@@ -29,6 +29,14 @@ int main(void) {
     }
     if (err == -2) {
         printf("Empty file\n");
+        return -1;
+    }
+    if (err == -3) {
+        printf("Not enough elements\n");
+        return -1;
+    }
+    if (err == -4) {
+        printf("Too many elements\n");
         return -1;
     }
 
@@ -47,7 +55,9 @@ int main(void) {
 
 int read_array_1(FILE *in, int **a, int *n) {
     int total;
-    int dummy;
+    int val;
+    int count = 0;
+    int extra_count = 0;
 
     if (fscanf(in, "%d", &total) != 1) {
         if (feof(in)) {
@@ -57,6 +67,11 @@ int read_array_1(FILE *in, int **a, int *n) {
     }
 
     if (total <= 0) {
+        while (fscanf(in, "%d", &val) == 1) {
+        }
+        if (!feof(in)) {
+            return -1;
+        }
         return -1;
     }
 
@@ -65,23 +80,34 @@ int read_array_1(FILE *in, int **a, int *n) {
         return -1;
     }
 
-    for (int i = 0; i < total; i++) {
-        if (fscanf(in, "%d", &((*a)[i])) != 1) {
-            free(*a);
-            *a = NULL;
-            return -1;
-        }
+    while (count < total && fscanf(in, "%d", &val) == 1) {
+        (*a)[count] = val;
+        count++;
     }
 
-    if (fscanf(in, "%d", &dummy) == 1) {
+    if (count < total) {
         free(*a);
         *a = NULL;
-        return -1;
+        if (!feof(in)) {
+            return -1;
+        }
+        return -3;
     }
+
+    while (fscanf(in, "%d", &val) == 1) {
+        extra_count++;
+    }
+
     if (!feof(in)) {
         free(*a);
         *a = NULL;
         return -1;
+    }
+
+    if (extra_count > 0) {
+        free(*a);
+        *a = NULL;
+        return -4;
     }
 
     *n = total;
