@@ -1,10 +1,5 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include "task20.h"
-
-int read_array_1(FILE *in, int **a, int *n);
-int read_array_2(FILE *in, int **a, int *n);
-void print_array(const int *a, int n);
 
 int main(void) {
     FILE *in;
@@ -40,12 +35,15 @@ int main(void) {
     }
 
     print_array(a, n);
-    new_n = task20(a, n);
-    
-    if (new_n >= 0) {
-        print_array(a, new_n);
+    new_n = task20(&a, n);
+
+    if (new_n < 0) {
+        fprintf(stderr, "Not enough memory\n");
+        free(a);
+        return EXIT_FAILURE;
     }
 
+    print_array(a, new_n);
     free(a);
     return 0;
 }
