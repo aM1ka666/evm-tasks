@@ -6,7 +6,6 @@ int main(void) {
     int *a = NULL;
     int n = 0;
     int err;
-    int new_n;
 
     in = fopen("1.txt", "r");
     if (in == NULL) {
@@ -35,15 +34,15 @@ int main(void) {
     }
 
     print_array(a, n);
-    new_n = task20(&a, n);
+    task20(&a, &n);
 
-    if (new_n < 0) {
+    if (n < 0) {
         fprintf(stderr, "Not enough memory\n");
         free(a);
         return EXIT_FAILURE;
     }
 
-    print_array(a, new_n);
+    print_array(a, n);
     free(a);
     return 0;
 }

@@ -1,8 +1,9 @@
 #include "task20.h"
 #include <stdlib.h>
 
-int task20(int **array, int n) {
+void task20(int **array, int *length) {
     int *a = *array;
+    int n = *length;
     int min_val;
     int max_val;
     long long range;
@@ -13,7 +14,8 @@ int task20(int **array, int n) {
     if (n <= 0) {
         free(a);
         *array = NULL;
-        return 0;
+        *length = 0;
+        return;
     }
 
     min_val = a[0];
@@ -32,7 +34,8 @@ int task20(int **array, int n) {
     seen = (int *)calloc((size_t)range, sizeof(int));
 
     if (seen == NULL) {
-        return -1;
+        *length = -1;
+        return;
     }
 
     for (int i = 0; i < n; i++) {
@@ -48,9 +51,10 @@ int task20(int **array, int n) {
     if (write_idx < n) {
         resized = realloc(a, (size_t)write_idx * sizeof(*a));
         if (resized == NULL) {
-            return -1;
+            *length = -1;
+            return;
         }
         *array = resized;
     }
-    return write_idx;
+    *length = write_idx;
 }
