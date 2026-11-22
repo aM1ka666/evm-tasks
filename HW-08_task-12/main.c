@@ -8,18 +8,20 @@
 
 int main(int argc, char **argv) {
     size_t length = 100000;
-    Record *array;
-    Record *reference;
-    SortKey key = FIRST_KEY;
-    int (*compare)(const void *, const void *);
+    int *array;
+    int *reference;
+    KeyFunction key = value_key;
+    int (*compare)(const void *, const void *) = compare_values;
     clock_t radix_start;
     clock_t radix_end;
     clock_t qsort_start;
     clock_t qsort_end;
     int keys_match = 1;
-    int records_match = 1;
-    int stable;
+    int values_match = 1;
 
+    if (argc == 2 && strcmp(argv[1], "demo") == 0) {
+        return demonstrate_stability();
+    }
     if (argc > 3) {
         fprintf(stderr, "Usage: %s [positive array length] [key: 1 or 2]\n",
                 argv[0]);
@@ -40,13 +42,13 @@ int main(int argc, char **argv) {
     }
     if (argc == 3) {
         if (strcmp(argv[2], "2") == 0) {
-            key = SECOND_KEY;
+            key = last_digit_key;
+            compare = compare_last_digits;
         } else if (strcmp(argv[2], "1") != 0) {
             fprintf(stderr, "Invalid key. Use 1 or 2\n");
             return EXIT_FAILURE;
         }
     }
-    compare = key == FIRST_KEY ? compare_first_key : compare_second_key;
 
     srand(1);
     array = generate_array(length);
@@ -59,9 +61,8 @@ int main(int argc, char **argv) {
     }
     memcpy(reference, array, length * sizeof(*array));
 
-    printf("Sort key: %d\n", key == FIRST_KEY ? 1 : 2);
+    printf("Sort key: %s\n", key == value_key ? "x" : "x % 10");
     if (length <= 20) {
-        printf("Records: (field 1, field 2, original position)\n");
         printf("Original: ");
         print_array(array, length);
     }
@@ -80,11 +81,11 @@ int main(int argc, char **argv) {
     qsort_end = clock();
 
     for (size_t i = 0; i < length; i++) {
-        if (array[i].keys[key] != reference[i].keys[key]) {
+        if (key(array[i]) != key(reference[i])) {
             keys_match = 0;
         }
-        if (array[i].original_position != reference[i].original_position) {
-            records_match = 0;
+        if (array[i] != reference[i]) {
+            values_match = 0;
         }
     }
 
@@ -94,13 +95,9 @@ int main(int argc, char **argv) {
         printf("qsort:    ");
         print_array(reference, length);
     }
-    stable = is_stably_sorted(array, length, key);
     printf("Array length: %zu\n", length);
     printf("Keys match: %s\n", keys_match ? "yes" : "no");
-    printf("Radix result is sorted and stable: %s\n", stable ? "yes" : "no");
-    printf("qsort kept equal keys in order on this input: %s\n",
-           is_stably_sorted(reference, length, key) ? "yes" : "no");
-    printf("Record order matches: %s\n", records_match ? "yes" : "no");
+    printf("Order of values matches qsort: %s\n", values_match ? "yes" : "no");
     if (radix_start != (clock_t)-1 && radix_end != (clock_t)-1 &&
         qsort_start != (clock_t)-1 && qsort_end != (clock_t)-1) {
         printf("Radix sort: %.6f s\n",
@@ -111,43 +108,43 @@ int main(int argc, char **argv) {
 
     free(array);
     free(reference);
-    return keys_match && stable ? EXIT_SUCCESS : EXIT_FAILURE;
+    return keys_match ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
-int compare_first_key(const void *left, const void *right) {
-    const Record *a = left;
-    const Record *b = right;
+int compare_keys(const void *left, const void *right, KeyFunction key) {
+    int a = key(*(const int *)left);
+    int b = key(*(const int *)right);
 
-    return (a->keys[FIRST_KEY] > b->keys[FIRST_KEY]) -
-           (a->keys[FIRST_KEY] < b->keys[FIRST_KEY]);
+    return (a > b) - (a < b);
 }
 
-int compare_second_key(const void *left, const void *right) {
-    const Record *a = left;
-    const Record *b = right;
-
-    return (a->keys[SECOND_KEY] > b->keys[SECOND_KEY]) -
-           (a->keys[SECOND_KEY] < b->keys[SECOND_KEY]);
+int compare_values(const void *left, const void *right) {
+    return compare_keys(left, right, value_key);
 }
 
-int is_stably_sorted(const Record *array, size_t length, SortKey key) {
-    for (size_t i = 1; i < length; i++) {
-        int previous = array[i - 1].keys[key];
-        int current = array[i].keys[key];
-
-        if (previous > current ||
-            (previous == current &&
-             array[i - 1].original_position >= array[i].original_position)) {
-            return 0;
-        }
-    }
-    return 1;
+int compare_last_digits(const void *left, const void *right) {
+    return compare_keys(left, right, last_digit_key);
 }
 
-void print_array(const Record *array, size_t length) {
+void print_array(const int *array, size_t length) {
     for (size_t i = 0; i < length; i++) {
-        printf("(%d, %d, %zu) ", array[i].keys[FIRST_KEY],
-               array[i].keys[SECOND_KEY], array[i].original_position);
+        printf("%d ", array[i]);
     }
     printf("\n");
+}
+
+int demonstrate_stability(void) {
+    int array[] = {32, 27, 22, 17, 12, 7};
+    size_t length = sizeof(array) / sizeof(*array);
+
+    printf("Sort key: x %% 10\n");
+    printf("Original: ");
+    print_array(array, length);
+    if (!radix_sort(array, length, last_digit_key)) {
+        fprintf(stderr, "Not enough memory\n");
+        return EXIT_FAILURE;
+    }
+    printf("Radix:    ");
+    print_array(array, length);
+    return EXIT_SUCCESS;
 }

@@ -6,9 +6,8 @@
 
 #define RADIX 256
 
-Record *generate_array(size_t length) {
-    Record *array;
-    int radius = length <= 20 ? 3 : 1000;
+int *generate_array(size_t length) {
+    int *array;
 
     if (length > SIZE_MAX / sizeof(*array)) {
         return NULL;
@@ -16,16 +15,22 @@ Record *generate_array(size_t length) {
     array = malloc(length * sizeof(*array));
     if (array != NULL) {
         for (size_t i = 0; i < length; i++) {
-            array[i].keys[FIRST_KEY] = rand() % (2 * radius + 1) - radius;
-            array[i].keys[SECOND_KEY] = rand() % (2 * radius + 1) - radius;
-            array[i].original_position = i + 1;
+            array[i] = rand() % 2001 - 1000;
         }
     }
     return array;
 }
 
-int radix_sort(Record *array, size_t length, SortKey sort_key) {
-    Record *buffer;
+int value_key(int value) {
+    return value;
+}
+
+int last_digit_key(int value) {
+    return value % 10;
+}
+
+int radix_sort(int *array, size_t length, KeyFunction key) {
+    int *buffer;
     unsigned int shift = 0;
 
     if (length < 2) {
@@ -44,9 +49,9 @@ int radix_sort(Record *array, size_t length, SortKey sort_key) {
         size_t offset = 0;
 
         for (size_t i = 0; i < length; i++) {
-            unsigned int key = (unsigned int)array[i].keys[sort_key] -
-                               (unsigned int)INT_MIN;
-            unsigned int digit = (key >> shift) & (RADIX - 1);
+            unsigned int ordered_key = (unsigned int)key(array[i]) -
+                                       (unsigned int)INT_MIN;
+            unsigned int digit = (ordered_key >> shift) & (RADIX - 1);
             next[digit]++;
         }
 
@@ -57,9 +62,9 @@ int radix_sort(Record *array, size_t length, SortKey sort_key) {
         }
 
         for (size_t i = 0; i < length; i++) {
-            unsigned int key = (unsigned int)array[i].keys[sort_key] -
-                               (unsigned int)INT_MIN;
-            unsigned int digit = (key >> shift) & (RADIX - 1);
+            unsigned int ordered_key = (unsigned int)key(array[i]) -
+                                       (unsigned int)INT_MIN;
+            unsigned int digit = (ordered_key >> shift) & (RADIX - 1);
             buffer[next[digit]++] = array[i];
         }
 

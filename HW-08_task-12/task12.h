@@ -3,19 +3,17 @@
 
 #include <stddef.h>
 
-typedef enum { FIRST_KEY, SECOND_KEY } SortKey;
-
-typedef struct {
-    int keys[2];
-    size_t original_position;
-} Record;
+typedef int (*KeyFunction)(int);
 
 int main(int argc, char **argv);
-Record *generate_array(size_t length);
-int radix_sort(Record *array, size_t length, SortKey key);
-int compare_first_key(const void *left, const void *right);
-int compare_second_key(const void *left, const void *right);
-int is_stably_sorted(const Record *array, size_t length, SortKey key);
-void print_array(const Record *array, size_t length);
+int *generate_array(size_t length);
+int value_key(int value);
+int last_digit_key(int value);
+int radix_sort(int *array, size_t length, KeyFunction key);
+int compare_keys(const void *left, const void *right, KeyFunction key);
+int compare_values(const void *left, const void *right);
+int compare_last_digits(const void *left, const void *right);
+void print_array(const int *array, size_t length);
+int demonstrate_stability(void);
 
 #endif
