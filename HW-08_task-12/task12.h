@@ -9,7 +9,7 @@ int main(int argc, char **argv);
 int *generate_array(size_t length);
 int value_key(int value);
 int last_digit_key(int value);
-int radix_sort(int *array, size_t length, KeyFunction key);
+int counting_sort(int *array, size_t length, KeyFunction key);
 int compare_keys(const void *left, const void *right, KeyFunction key);
 int compare_values(const void *left, const void *right);
 int compare_last_digits(const void *left, const void *right);

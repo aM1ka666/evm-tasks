@@ -12,8 +12,8 @@ int main(int argc, char **argv) {
     int *reference;
     KeyFunction key = value_key;
     int (*compare)(const void *, const void *) = compare_values;
-    clock_t radix_start;
-    clock_t radix_end;
+    clock_t counting_start;
+    clock_t counting_end;
     clock_t qsort_start;
     clock_t qsort_end;
     int keys_match = 1;
@@ -67,14 +67,14 @@ int main(int argc, char **argv) {
         print_array(array, length);
     }
 
-    radix_start = clock();
-    if (!radix_sort(array, length, key)) {
+    counting_start = clock();
+    if (!counting_sort(array, length, key)) {
         fprintf(stderr, "Not enough memory\n");
         free(array);
         free(reference);
         return EXIT_FAILURE;
     }
-    radix_end = clock();
+    counting_end = clock();
 
     qsort_start = clock();
     qsort(reference, length, sizeof(*reference), compare);
@@ -90,7 +90,7 @@ int main(int argc, char **argv) {
     }
 
     if (length <= 20) {
-        printf("Radix:    ");
+        printf("Counting: ");
         print_array(array, length);
         printf("qsort:    ");
         print_array(reference, length);
@@ -98,10 +98,10 @@ int main(int argc, char **argv) {
     printf("Array length: %zu\n", length);
     printf("Keys match: %s\n", keys_match ? "yes" : "no");
     printf("Order of values matches qsort: %s\n", values_match ? "yes" : "no");
-    if (radix_start != (clock_t)-1 && radix_end != (clock_t)-1 &&
+    if (counting_start != (clock_t)-1 && counting_end != (clock_t)-1 &&
         qsort_start != (clock_t)-1 && qsort_end != (clock_t)-1) {
-        printf("Radix sort: %.6f s\n",
-               ((double)radix_end - radix_start) / CLOCKS_PER_SEC);
+        printf("Counting sort: %.6f s\n",
+               ((double)counting_end - counting_start) / CLOCKS_PER_SEC);
         printf("qsort:      %.6f s\n",
                ((double)qsort_end - qsort_start) / CLOCKS_PER_SEC);
     }
@@ -140,11 +140,11 @@ int demonstrate_stability(void) {
     printf("Sort key: x %% 10\n");
     printf("Original: ");
     print_array(array, length);
-    if (!radix_sort(array, length, last_digit_key)) {
+    if (!counting_sort(array, length, last_digit_key)) {
         fprintf(stderr, "Not enough memory\n");
         return EXIT_FAILURE;
     }
-    printf("Radix:    ");
+    printf("Counting: ");
     print_array(array, length);
     return EXIT_SUCCESS;
 }

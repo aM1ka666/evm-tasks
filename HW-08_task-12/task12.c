@@ -1,10 +1,7 @@
-#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include "task12.h"
-
-#define RADIX 256
 
 int *generate_array(size_t length) {
     int *array;
@@ -29,9 +26,14 @@ int last_digit_key(int value) {
     return value % 10;
 }
 
-int radix_sort(int *array, size_t length, KeyFunction key) {
+int counting_sort(int *array, size_t length, KeyFunction key) {
     int *buffer;
-    unsigned int shift = 0;
+    size_t *next;
+    int min_key;
+    int max_key;
+    unsigned int span;
+    size_t range;
+    size_t offset = 0;
 
     if (length < 2) {
         return 1;
@@ -39,39 +41,48 @@ int radix_sort(int *array, size_t length, KeyFunction key) {
     if (length > SIZE_MAX / sizeof(*array)) {
         return 0;
     }
+
+    min_key = key(array[0]);
+    max_key = min_key;
+    for (size_t i = 1; i < length; i++) {
+        int current_key = key(array[i]);
+        if (current_key < min_key) {
+            min_key = current_key;
+        }
+        if (current_key > max_key) {
+            max_key = current_key;
+        }
+    }
+    span = (unsigned int)max_key - (unsigned int)min_key;
+    if ((uintmax_t)span >= SIZE_MAX / sizeof(*next)) {
+        return 0;
+    }
+    range = (size_t)span + 1;
+
+    next = calloc(range, sizeof(*next));
     buffer = malloc(length * sizeof(*buffer));
-    if (buffer == NULL) {
+    if (next == NULL || buffer == NULL) {
+        free(next);
+        free(buffer);
         return 0;
     }
 
-    for (unsigned int remaining = UINT_MAX; remaining != 0; remaining >>= 8) {
-        size_t next[RADIX] = {0};
-        size_t offset = 0;
-
-        for (size_t i = 0; i < length; i++) {
-            unsigned int ordered_key = (unsigned int)key(array[i]) -
-                                       (unsigned int)INT_MIN;
-            unsigned int digit = (ordered_key >> shift) & (RADIX - 1);
-            next[digit]++;
-        }
-
-        for (size_t digit = 0; digit < RADIX; digit++) {
-            size_t count = next[digit];
-            next[digit] = offset;
-            offset += count;
-        }
-
-        for (size_t i = 0; i < length; i++) {
-            unsigned int ordered_key = (unsigned int)key(array[i]) -
-                                       (unsigned int)INT_MIN;
-            unsigned int digit = (ordered_key >> shift) & (RADIX - 1);
-            buffer[next[digit]++] = array[i];
-        }
-
-        memcpy(array, buffer, length * sizeof(*array));
-        shift += 8;
+    for (size_t i = 0; i < length; i++) {
+        unsigned int index = (unsigned int)key(array[i]) - (unsigned int)min_key;
+        next[index]++;
+    }
+    for (size_t i = 0; i < range; i++) {
+        size_t count = next[i];
+        next[i] = offset;
+        offset += count;
+    }
+    for (size_t i = 0; i < length; i++) {
+        unsigned int index = (unsigned int)key(array[i]) - (unsigned int)min_key;
+        buffer[next[index]++] = array[i];
     }
 
+    memcpy(array, buffer, length * sizeof(*array));
+    free(next);
     free(buffer);
     return 1;
 }
