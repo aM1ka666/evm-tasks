@@ -31,7 +31,7 @@ int counting_sort(int *array, size_t length, KeyFunction key) {
     size_t *next;
     int min_key;
     int max_key;
-    unsigned int span;
+    uintmax_t span;
     size_t range;
     size_t offset = 0;
 
@@ -53,8 +53,8 @@ int counting_sort(int *array, size_t length, KeyFunction key) {
             max_key = current_key;
         }
     }
-    span = (unsigned int)max_key - (unsigned int)min_key;
-    if ((uintmax_t)span >= SIZE_MAX / sizeof(*next)) {
+    span = (uintmax_t)max_key - (uintmax_t)min_key;
+    if (span >= SIZE_MAX / sizeof(*next)) {
         return 0;
     }
     range = (size_t)span + 1;

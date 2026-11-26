@@ -12,6 +12,7 @@ int main(int argc, char **argv) {
     int *reference;
     KeyFunction key = value_key;
     int (*compare)(const void *, const void *) = compare_values;
+    time_t seed;
     clock_t counting_start;
     clock_t counting_end;
     clock_t qsort_start;
@@ -50,7 +51,8 @@ int main(int argc, char **argv) {
         }
     }
 
-    srand(1);
+    seed = time(NULL);
+    srand((unsigned int)seed);
     array = generate_array(length);
     reference = malloc(length * sizeof(*reference));
     if (array == NULL || reference == NULL) {
